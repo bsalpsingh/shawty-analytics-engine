@@ -5,7 +5,7 @@ import logging
 from kafka import KafkaConsumer
 from typing import Any, List
 import time
-
+from app.core.clickhouse import ClickHouseSingleton
 log = logging.getLogger(__name__)
 
 
@@ -59,7 +59,7 @@ class SubscriberSingleton:
                     if new and not self._buffer:
                         self._last_flush = time.monotonic()
                     self._buffer.extend(new)
-                    
+
                 if self._buffer and (
                     len(self._buffer) >= 500
                     or time.monotonic() - self._last_flush > 5
@@ -73,5 +73,4 @@ class SubscriberSingleton:
             self._consumer.close()
 
     def process(self, batch: List[Any]):
-        print("write the value to clickhouse of len", len(batch))
-
+        ClickHouseSingleton().insert_clicks(batch)
